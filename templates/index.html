@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <title>Poor Man's Twitter</title>
+</head>
+<body class="bg-info">
+    <div class="container-fluid" id="app">
+        <h1 class="text-center">Poor Man's Twitter</h1>
+        <h3 class="text-center">You can't cancel anyone here</h3>
+        <h6 class="text-center">Go ahead and post a Tweet</h6>
+        <form class="form-inline text-center" v-on:submit.prevent="post_tweet" v-html="tweet_form" method="POST"></form><br>
+        <table class="table table-hover table-condensed table-bordered table-responsive" data-toggle="table">
+            <thead>
+                <tr>
+                    <th class="text-white">Username</th>
+                    <th class="text-white">Tweet</th>
+                    <th class="text-white">Date Posted</th>
+                </tr>
+            </thead>
+            <tbody v-for="tweet in tweets" :key="tweet.id">
+                <tr>
+                    <td>
+                        <p class="text-white">[[ tweet.username ]]</p>
+                    </td>
+                    <td>
+                        <p class="text-white">[[ tweet.text ]]</p>
+                    </td>
+                    <td>
+                        <p class="text-white">[[ tweet.created ]]</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+
+        var app = new Vue({
+            delimiters: ["[[", "]]"],
+            el: '#app',
+            data: {
+                tweet_form: null, 
+                tweets: null
+            },
+
+            async mounted () {
+                this.tweet_form = await this.get_form()
+                this.tweets = await this.get_tweets()
+            }, 
+
+            methods: {
+                get_form: async function(){
+                    let res = await axios.get('http://127.0.0.1:8000/api/tweet/form/')
+                    return res.data
+                },
+
+                get_tweets: async function(){
+                    let res = await axios.get('http://127.0.0.1:8000/api/tweet/')
+                    return res.data
+                },
+
+                post_tweet: async function(event){
+                    let new_tweet = {
+                        username: event.target.elements.username.value,
+                        text: event.target.elements.text.value
+                    }
+                    await axios.post('http://127.0.0.1:8000/api/tweet/', new_tweet)
+                    this.tweets = await this.get_tweets()
+                }
+            }
+        })
+    </script>
+</body>
+</html>

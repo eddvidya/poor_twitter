@@ -1,0 +1,4 @@
+{% load rest_framework %}
+{% csrf_token %}
+{% render_form serializer template_pack='rest_framework/inline' %}
+<button type="submit" class="btn btn-default">Tweet!</button>
